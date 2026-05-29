@@ -3,7 +3,7 @@ import Head from 'next/head';
 import { useCart } from '../hooks/useCart';
 import { toast } from 'react-hot-toast';
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+const API = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
 
 const inputStyle = {
   width: '100%',
@@ -19,26 +19,26 @@ const inputStyle = {
 };
 
 export default function CheckoutPage() {
-  const { items, total, clearCart } = useCart();
+  const { items, clearCart } = useCart();
   const [form, setForm] = useState({
     name: '', email: '', phone: '',
     address: '', address2: '', city: '', province: '', postal: '',
     payment: 'cod',
   });
   const [discountCode, setDiscountCode] = useState('');
-  const [discount, setDiscount] = useState(null); // { code, discount_amount }
+  const [discount, setDiscount] = useState(null);
   const [discountLoading, setDiscountLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [orderNumber, setOrderNumber] = useState(null);
 
   const SHIPPING = 250;
-  const subtotal = total;
+  // ── FIX: compute subtotal directly from items instead of using the Zustand getter
+  const subtotal = items.reduce((sum, i) => sum + (Number(i.price) * i.quantity), 0);
   const discountAmount = discount?.discount_amount || 0;
   const orderTotal = subtotal + SHIPPING - discountAmount;
 
   const handle = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  // ── Apply discount code ───────────────────────────────────────────────────
   const applyDiscount = async () => {
     if (!discountCode.trim()) return;
     setDiscountLoading(true);
@@ -60,7 +60,6 @@ export default function CheckoutPage() {
     }
   };
 
-  // ── Place order ───────────────────────────────────────────────────────────
   const submit = async (e) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.address || !form.city) {
@@ -115,7 +114,6 @@ export default function CheckoutPage() {
     }
   };
 
-  // ── Order confirmed screen ────────────────────────────────────────────────
   if (orderNumber) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', textAlign: 'center' }}>
@@ -138,7 +136,6 @@ export default function CheckoutPage() {
     );
   }
 
-  // ── Checkout form ─────────────────────────────────────────────────────────
   return (
     <>
       <Head><title>Checkout — SADÉ</title></Head>
@@ -160,7 +157,6 @@ export default function CheckoutPage() {
 
           <form onSubmit={submit}>
 
-            {/* Contact */}
             <p style={{ fontFamily: 'Jost, sans-serif', fontSize: '9px', letterSpacing: '0.2em', color: '#444', textTransform: 'uppercase', marginBottom: '16px' }}>Contact</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '40px' }}>
               <input name="name" placeholder="Full name *" value={form.name} onChange={handle} style={inputStyle} required />
@@ -168,7 +164,6 @@ export default function CheckoutPage() {
               <input name="phone" placeholder="Phone number" value={form.phone} onChange={handle} style={inputStyle} />
             </div>
 
-            {/* Delivery */}
             <p style={{ fontFamily: 'Jost, sans-serif', fontSize: '9px', letterSpacing: '0.2em', color: '#444', textTransform: 'uppercase', marginBottom: '16px' }}>Delivery</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '40px' }}>
               <input name="address" placeholder="Street address *" value={form.address} onChange={handle} style={inputStyle} required />
@@ -180,7 +175,6 @@ export default function CheckoutPage() {
               <input name="postal" placeholder="Postal code" value={form.postal} onChange={handle} style={inputStyle} />
             </div>
 
-            {/* Discount code */}
             <p style={{ fontFamily: 'Jost, sans-serif', fontSize: '9px', letterSpacing: '0.2em', color: '#444', textTransform: 'uppercase', marginBottom: '16px' }}>Discount Code</p>
             <div style={{ display: 'flex', gap: '0', marginBottom: '40px' }}>
               <input
@@ -211,7 +205,6 @@ export default function CheckoutPage() {
               </button>
             </div>
 
-            {/* Payment */}
             <p style={{ fontFamily: 'Jost, sans-serif', fontSize: '9px', letterSpacing: '0.2em', color: '#444', textTransform: 'uppercase', marginBottom: '16px' }}>Payment</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '48px' }}>
               {[['cod', 'Cash on Delivery'], ['card', 'Credit / Debit Card (Coming Soon)']].map(([val, label]) => (
@@ -277,7 +270,7 @@ export default function CheckoutPage() {
                     <p style={{ fontFamily: 'Jost, sans-serif', fontSize: '11px', color: '#444' }}>Size {item.size} · Qty {item.quantity}</p>
                   </div>
                   <span style={{ fontFamily: 'Jost, sans-serif', fontSize: '14px', color: '#f0ede8' }}>
-                    Rs {(item.price * item.quantity).toLocaleString()}
+                    Rs {(Number(item.price) * item.quantity).toLocaleString()}
                   </span>
                 </div>
               ))}
