@@ -108,20 +108,19 @@ export default function ProductPage() {
             </h1>
 
             {/* Price */}
-            <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginBottom: '36px' }}>
-              {!product.is_sold_out && (
-                <>
-                  <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '28px', fontWeight: 300, color: '#f0ede8' }}>
-                    Rs {Number(price).toLocaleString()}
-                  </span>
-                  {product.discounted_price && (
-                    <span style={{ fontFamily: 'Jost, sans-serif', fontSize: '16px', color: '#333', textDecoration: 'line-through' }}>
-                      Rs {Number(product.price).toLocaleString()}
-                    </span>
-                  )}
-                </>
-              )}
-            </div>
+<div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginBottom: '36px' }}>
+  <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '28px', fontWeight: 300, color: product.is_sold_out ? '#3a3a3a' : '#f0ede8', textDecoration: product.is_sold_out ? 'line-through' : 'none' }}>
+    Rs {Number(price).toLocaleString()}
+  </span>
+  {product.is_sold_out && (
+    <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '10px', letterSpacing: '0.2em', color: '#555', textTransform: 'uppercase' }}>Sold Out</span>
+  )}
+  {!product.is_sold_out && product.discounted_price && (
+    <span style={{ fontFamily: 'Jost, sans-serif', fontSize: '16px', color: '#333', textDecoration: 'line-through' }}>
+      Rs {Number(product.price).toLocaleString()}
+    </span>
+  )}
+</div>
 
             {/* Description */}
             {product.description && (
