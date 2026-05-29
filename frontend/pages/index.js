@@ -185,34 +185,64 @@ function HeroNav() {
 }
 
 function ProductCard({ product }) {
+  const [imgIndex, setImgIndex] = useState(false);
   const [hovered, setHovered] = useState(false);
   const { toggleItem, isWishlisted } = useWishlist();
   const wishlisted = isWishlisted(product.id);
-  const img = Array.isArray(product.images) ? product.images[0] : product.image_url;
+  const touchStartX = useRef(null);
+  const touchEndX = useRef(null);
+  const images = Array.isArray(product.images) ? product.images : [product.image_url].filter(Boolean);
+
+  const onTouchStart = e => { touchStartX.current = e.targetTouches[0].clientX; };
+  const onTouchMove = e => { touchEndX.current = e.targetTouches[0].clientX; };
+  const onTouchEnd = e => {
+    e.stopPropagation();
+    if (!touchStartX.current || !touchEndX.current) return;
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) < 50) return;
+    if (diff > 0 && imgIndex < images.length - 1) setImgIndex(i => i + 1);
+    if (diff < 0 && imgIndex > 0) setImgIndex(i => i - 1);
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
 
   return (
     <Link href={`/product/${product.slug}`} style={{ textDecoration: 'none' }}>
       <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ background: '#0a0a0a', cursor: 'pointer', position: 'relative' }}>
-        <div style={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden' }}>
-          <img src={img} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.9s cubic-bezier(0.19,1,0.22,1)', transform: hovered ? 'scale(1.07)' : 'scale(1)' }} />
+        <div
+          style={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden' }}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
+          <img src={images[imgIndex] || ''} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.9s cubic-bezier(0.19,1,0.22,1)', transform: hovered ? 'scale(1.07)' : 'scale(1)', pointerEvents: 'none' }} />
 
-          {/* Wishlist heart — bottom right */}
+          {/* 1/1 badge */}
+          <div style={{ position: 'absolute', top: '14px', left: '14px', border: '1px solid rgba(212,197,169,0.3)', padding: '4px 10px', background: 'rgba(6,6,6,0.65)' }}>
+            <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '8px', letterSpacing: '0.15em', color: '#d4c5a9' }}>1 / 1</span>
+          </div>
+
+          {/* Sold out tag */}
+          {product.is_sold_out && (
+            <div style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(6,6,6,0.85)', border: '1px solid #1e1e1e', padding: '4px 10px' }}>
+              <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '8px', letterSpacing: '0.18em', color: '#555', textTransform: 'uppercase' }}>Sold Out</span>
+            </div>
+          )}
+
+          {/* Wishlist heart */}
           <button onClick={e => { e.preventDefault(); e.stopPropagation(); toggleItem(product); toast(wishlisted ? 'Removed from wishlist' : 'Added to wishlist'); }}
-            style={{ position: 'absolute', bottom: '16px', right: '16px', background: 'rgba(6,6,6,0.75)', border: `1px solid ${wishlisted ? '#d4c5a9' : '#222'}`, width: '38px', height: '38px', borderRadius: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.3s', zIndex: 3 }}>
+            style={{ position: 'absolute', bottom: '14px', right: '14px', background: 'rgba(6,6,6,0.75)', border: `1px solid ${wishlisted ? '#d4c5a9' : '#222'}`, width: '38px', height: '38px', borderRadius: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'border-color 0.3s', zIndex: 3 }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill={wishlisted ? '#d4c5a9' : 'none'} stroke={wishlisted ? '#d4c5a9' : '#888'} strokeWidth="1.5">
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
           </button>
 
-          {/* 1/1 badge — top left */}
-          <div style={{ position: 'absolute', top: '14px', left: '14px', border: '1px solid rgba(212,197,169,0.3)', padding: '4px 10px', background: 'rgba(6,6,6,0.65)' }}>
-            <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '8px', letterSpacing: '0.15em', color: '#d4c5a9' }}>1 / 1</span>
-          </div>
-
-          {/* CHANGE 2: Sold out tag — top right, small, no blur, no overlay */}
-          {product.is_sold_out && (
-            <div style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(6,6,6,0.85)', border: '1px solid #1e1e1e', padding: '4px 10px' }}>
-              <span style={{ fontFamily: 'Jost, sans-serif', fontSize: '8px', letterSpacing: '0.18em', color: '#555', textTransform: 'uppercase' }}>Sold Out</span>
+          {/* Swipe dots */}
+          {images.length > 1 && (
+            <div style={{ position: 'absolute', bottom: '14px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '5px' }}>
+              {images.map((_, i) => (
+                <div key={i} style={{ width: imgIndex === i ? '16px' : '5px', height: '5px', background: imgIndex === i ? '#d4c5a9' : 'rgba(255,255,255,0.2)', borderRadius: '3px', transition: 'all 0.3s' }} />
+              ))}
             </div>
           )}
         </div>
@@ -220,10 +250,14 @@ function ProductCard({ product }) {
         <div style={{ padding: '16px 4px 24px' }}>
           <p style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '8px', letterSpacing: '0.18em', color: '#282828', marginBottom: '7px', textTransform: 'uppercase' }}>{product.collection || 'Volume I'} · Custom</p>
           <h3 style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '20px', fontWeight: 400, color: '#f0ede8', marginBottom: '10px' }}>{product.name}</h3>
-          {/* CHANGE 3: always show price — dimmed for sold out, normal for available */}
-          <span style={{ fontFamily: 'Jost, sans-serif', fontSize: '14px', color: product.is_sold_out ? '#3a3a3a' : '#c8bfb2', fontWeight: 300 }}>
-            Rs {Number(product.discounted_price || product.price).toLocaleString()}
-          </span>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <span style={{ fontFamily: 'Jost, sans-serif', fontSize: '14px', color: product.is_sold_out ? '#3a3a3a' : '#c8bfb2', fontWeight: 300, textDecoration: product.is_sold_out ? 'line-through' : 'none' }}>
+              Rs {Number(product.discounted_price || product.price).toLocaleString()}
+            </span>
+            {product.is_sold_out && (
+              <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '8px', letterSpacing: '0.15em', color: '#444', textTransform: 'uppercase' }}>Sold Out</span>
+            )}
+          </div>
         </div>
       </div>
     </Link>
