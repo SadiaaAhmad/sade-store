@@ -185,7 +185,7 @@ function HeroNav() {
 }
 
 function ProductCard({ product }) {
-  const [imgIndex, setImgIndex] = useState(false);
+  const [imgIndex, setImgIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
   const { toggleItem, isWishlisted } = useWishlist();
   const wishlisted = isWishlisted(product.id);
