@@ -109,9 +109,7 @@ export default function ProductPage() {
 
             {/* Price */}
             <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginBottom: '36px' }}>
-              {product.is_sold_out ? (
-                <span style={{ fontFamily: 'Jost, sans-serif', fontSize: '22px', color: '#444' }}>Sold Out</span>
-              ) : (
+              {!product.is_sold_out && (
                 <>
                   <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '28px', fontWeight: 300, color: '#f0ede8' }}>
                     Rs {Number(price).toLocaleString()}
