@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useCart } from '../../hooks/useCart';
 import { toast } from 'react-hot-toast';
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+const API = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
 
 export default function ProductPage() {
   const [product, setProduct] = useState(null);
@@ -83,11 +83,7 @@ export default function ProductPage() {
               <div style={{ position: 'absolute', top: '20px', left: '20px', border: '1px solid rgba(212,197,169,0.35)', padding: '6px 14px', background: 'rgba(6,6,6,0.7)' }}>
                 <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: '9px', letterSpacing: '0.18em', color: '#d4c5a9' }}>1 / 1</span>
               </div>
-              {product.is_sold_out && (
-                <div style={{ position: 'absolute', inset: 0, background: 'rgba(6,6,6,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: '32px', fontWeight: 300, color: '#555', letterSpacing: '0.2em' }}>Sold Out</span>
-                </div>
-              )}
+              
             </div>
 
             {/* Thumbnails */}
