@@ -7,9 +7,8 @@ import { toast } from 'react-hot-toast';
 
 const API = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/$/, '');
 
-const HERO_IMG = 'https://cdn.corenexis.com/files/c/7984659720.png';
-const STORY_IMG = 'https://cdn.corenexis.com/files/c/5617759720.png';
-
+const HERO_IMG = 'https://zdnwiwvlngdtmmlzjufh.supabase.co/storage/v1/object/public/products/hero.jpg';
+const STORY_IMG = 'https://zdnwiwvlngdtmmlzjufh.supabase.co/storage/v1/object/public/products/story.jpg';
 export default function HomePage() {
   const bgRef = useRef(null);
   const [loaded, setLoaded] = useState(false);
